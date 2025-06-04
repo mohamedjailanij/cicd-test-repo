@@ -1,10 +1,9 @@
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-deployment
+  name: my-app-deployment
 spec:
-  replicas: 2  # Number of replicas
+  replicas: 2  # Adjust as needed (number of pods)
   selector:
     matchLabels:
       app: my-app
@@ -14,7 +13,7 @@ spec:
         app: my-app
     spec:
       containers:
-        - name: my-container
-          image: "us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:latest"  # This is the default image
+        - name: my-app-container
+          image: asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:latest  # Update to your image path
           ports:
             - containerPort: 8080
