@@ -21,5 +21,14 @@ steps:
         'unittest'
       ]
 
+  # Step 3: Print success message when the PR build and tests are successful
+  - name: 'alpine'
+    args:
+      [
+        'sh',
+        '-c',
+        'echo "PR Build for $SHORT_SHA succeeded!"'
+      ]
+
 images:
   - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
