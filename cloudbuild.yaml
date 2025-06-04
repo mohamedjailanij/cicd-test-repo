@@ -6,7 +6,7 @@ steps:
       [
         'build',
         '-t',
-        'us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA',
+        'asia-southeast1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA',
         '.'
       ]
 
@@ -15,7 +15,7 @@ steps:
     args:
       [
         'push',
-        'us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'
+        'asia-southeast1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'
       ]
 
   # Step 3: Authenticate to GKE and set up kubectl
@@ -39,11 +39,11 @@ steps:
         'set',
         'image',
         'deployment/my-deployment',
-        'my-container=us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'
+        'my-container=asia-southeast1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'
       ]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=COMPUTE_ZONE'
       - 'CLOUDSDK_CONTAINER_CLUSTER=CLUSTER_NAME'
 
 images:
-  - 'us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'
+  - 'asia-southeast1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'
