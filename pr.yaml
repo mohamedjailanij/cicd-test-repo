@@ -1,0 +1,40 @@
+
+# Trigger on Pull Requests
+name: 'Cloud Build Trigger for Pull Requests'
+description: 'Trigger to start Cloud Build on pull requests'
+
+# Source repository
+repoSource:
+  repoName: 'projects/PROJECT_ID/repos/my-repo'  # Update this with your repo info
+  pullRequest:
+    branch: 'main'  # Trigger for PRs targeting the main branch
+
+# The Cloud Build config file path
+build:
+  steps:
+    - name: 'gcr.io/cloud-builders/docker'
+      args:
+        - 'build'
+        - '-t'
+        - 'us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'
+        - '.'
+    - name: 'gcr.io/cloud-builders/docker'
+      args:
+        - 'push'
+        - 'us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'
+    - name: 'gcr.io/cloud-builders/gcloud'
+      args:
+        - 'container'
+        - 'clusters'
+        - 'get-credentials'
+        - 'CLUSTER_NAME'
+        - '--zone'
+        - 'COMPUTE_ZONE'
+        - '--project'
+        - 'PROJECT_ID'
+    - name: 'gcr.io/cloud-builders/kubectl'
+      args:
+        - 'set'
+        - 'image'
+        - 'deployment/my-deployment'
+        - 'my-container=us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:$SHORT_SHA'

@@ -1,0 +1,20 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+spec:
+  replicas: 2  # Number of replicas
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: my-container
+          image: "us-central1-docker.pkg.dev/PROJECT_ID/my-repo/my-app:latest"  # This is the default image
+          ports:
+            - containerPort: 8080
