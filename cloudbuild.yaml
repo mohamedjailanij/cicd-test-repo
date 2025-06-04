@@ -21,4 +21,4 @@ images:
   - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
 
 options:
-  logging: NONE  # No logging
+  logging: CLOUD_LOGGING_ONLY  # Logs will be stored in Cloud Logging
