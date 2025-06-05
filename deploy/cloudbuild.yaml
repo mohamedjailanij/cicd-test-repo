@@ -1,35 +1,49 @@
 substitutions:
-  _VERSION: '0.0.0'  # Define the starting version or dynamic version from Git tag
+  _VERSION: 'v0.0.0'  # Starting version
 
 steps:
-  # Step 1: Get the latest Git tag (this will be your version number)
-  - name: 'alpine'
+  # Step 1: Fetch the latest Git tag (version)
+  - name: 'gcr.io/cloud-builders/git'
     id: 'get_git_tag'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        VERSION=$(git describe --tags --abbrev=0)  # Get the latest git tag (version)
-        echo "Using Git tag version: $VERSION"
-        echo $VERSION > /workspace/version.txt  # Save the version for later use
-        echo $VERSION > /workspace/_VERSION  # Set _VERSION substitution dynamically
+        VERSION=$(git describe --tags --abbrev=0)
+        echo "Current Git tag version: $VERSION"
+        echo $VERSION > /workspace/_VERSION  # Store the version for later use
 
-  # Step 2: Build Docker image with the Git tag as the version
+  # Step 2: Increment the version (patch version)
+  - name: 'alpine'
+    id: 'increment_version'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        VERSION=$(cat /workspace/_VERSION)
+        VERSION_PARTS=(${VERSION//./ })
+        PATCH_VERSION=${VERSION_PARTS[2]}
+        PATCH_VERSION=$((PATCH_VERSION + 1))  # Increment the patch version
+        NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH_VERSION"
+        echo "New version: $NEW_VERSION"
+        echo $NEW_VERSION > /workspace/_VERSION  # Update the version for the next use
+
+  # Step 3: Build Docker image with the new version (tagged as the version)
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'build',
         '-t',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}',  # Tag the image with the Git version
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}',  # Use the new version for Docker image
         '.'
       ]
 
-  # Step 3: Push Docker image to Google Artifact Registry
+  # Step 4: Push the Docker image to Artifact Registry with the new version tag
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'push',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'  # Push with the Git version tag
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'  # Push with the new version tag
       ]
 
 images:
