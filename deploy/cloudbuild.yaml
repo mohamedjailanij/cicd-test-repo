@@ -1,5 +1,5 @@
 substitutions:
-  _VERSION: '0.0.1'  # Define the starting version or dynamic version from Git tag
+  _VERSION: '0.0.0'  # Define the starting version or dynamic version from Git tag
 
 steps:
   # Step 1: Get the latest Git tag (this will be your version number)
