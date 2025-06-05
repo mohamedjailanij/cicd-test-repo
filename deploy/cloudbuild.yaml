@@ -17,6 +17,33 @@ steps:
         'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
       ]
 
+  # Step 3: Authenticate to GKE cluster
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      [
+        'container',
+        'clusters',
+        'get-credentials',
+        'cicd-automation-cluster',  # Name of your GKE cluster
+        '--zone',
+        'asia-southeast1',  # The zone where your cluster is located
+        '--project',
+        'western-emitter-461905-e7'  # Your Google Cloud project ID
+      ]
+
+  # Step 4: Update Kubernetes deployment with the new image
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      [
+        'set',
+        'image',
+        'deployment/my-app-deployment',  # Replace with your deployment name
+        'my-app-container=asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
+      ]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=asia-southeast1'  # Zone of your cluster
+      - 'CLOUDSDK_CONTAINER_CLUSTER=cicd-automation-cluster'  # Name of your cluster
+
 images:
   - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
 
