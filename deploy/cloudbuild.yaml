@@ -1,3 +1,6 @@
+substitutions:
+  _VERSION: '0.0.1'  # Define the starting version or dynamic version from Git tag
+
 steps:
   # Step 1: Get the latest Git tag (this will be your version number)
   - name: 'alpine'
@@ -6,10 +9,10 @@ steps:
     args:
       - '-c'
       - |
-        VERSION=$(git describe --tags --abbrev=0)
+        VERSION=$(git describe --tags --abbrev=0)  # Get the latest git tag (version)
         echo "Using Git tag version: $VERSION"
-        echo $VERSION > /workspace/version.txt  # Optionally save the version for later steps
-        echo $VERSION > /workspace/_VERSION  # Set _VERSION for substitution
+        echo $VERSION > /workspace/version.txt  # Save the version for later use
+        echo $VERSION > /workspace/_VERSION  # Set _VERSION substitution dynamically
 
   # Step 2: Build Docker image with the Git tag as the version
   - name: 'gcr.io/cloud-builders/docker'
@@ -17,7 +20,7 @@ steps:
       [
         'build',
         '-t',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}',  # Use custom version as the tag
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}',  # Tag the image with the Git version
         '.'
       ]
 
@@ -26,7 +29,7 @@ steps:
     args:
       [
         'push',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'  # Push with the custom version tag
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'  # Push with the Git version tag
       ]
 
 images:
