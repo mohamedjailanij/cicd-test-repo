@@ -1,52 +1,35 @@
 steps:
-  # Step 1: Build Docker image
+  # Step 1: Get the latest Git tag (this will be your version number)
+  - name: 'alpine'
+    id: 'get_git_tag'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        VERSION=$(git describe --tags --abbrev=0)
+        echo "Using Git tag version: $VERSION"
+        echo $VERSION > /workspace/version.txt  # Optionally save the version for later steps
+
+  # Step 2: Build Docker image with the Git tag as the version
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'build',
         '-t',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA',
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$VERSION',  # Tag the image with the Git version
         '.'
       ]
 
-  # Step 2: Push Docker image to Google Artifact Registry
+  # Step 3: Push Docker image to Google Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'push',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$VERSION'  # Push the image with the Git version tag
       ]
-
-  # Step 3: Authenticate to GKE cluster
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      [
-        'container',
-        'clusters',
-        'get-credentials',
-        'cicd-automation-cluster',  # Name of your GKE cluster
-        '--zone',
-        'asia-southeast1',  # The zone where your cluster is located
-        '--project',
-        'western-emitter-461905-e7'  # Your Google Cloud project ID
-      ]
-
-  # Step 4: Update Kubernetes deployment with the new image
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args:
-      [
-        'set',
-        'image',
-        'deployment/my-app-deployment',  # Replace with your deployment name
-        'my-app-container=asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA',
-        '--namespace=cicd-test-service'  # Ensure the correct namespace
-      ]
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=asia-southeast1'  # Zone of your cluster
-      - 'CLOUDSDK_CONTAINER_CLUSTER=cicd-automation-cluster'  # Name of your cluster
 
 images:
-  - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
+  - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$VERSION'
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Logs will be stored in Cloud Logging
