@@ -9,6 +9,7 @@ steps:
         VERSION=$(git describe --tags --abbrev=0)
         echo "Using Git tag version: $VERSION"
         echo $VERSION > /workspace/version.txt  # Optionally save the version for later steps
+        echo $VERSION > /workspace/_VERSION  # Set _VERSION for substitution
 
   # Step 2: Build Docker image with the Git tag as the version
   - name: 'gcr.io/cloud-builders/docker'
@@ -16,7 +17,7 @@ steps:
       [
         'build',
         '-t',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$VERSION',  # Tag the image with the Git version
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}',  # Use custom version as the tag
         '.'
       ]
 
@@ -25,11 +26,11 @@ steps:
     args:
       [
         'push',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$VERSION'  # Push the image with the Git version tag
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'  # Push with the custom version tag
       ]
 
 images:
-  - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$VERSION'
+  - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Logs will be stored in Cloud Logging
