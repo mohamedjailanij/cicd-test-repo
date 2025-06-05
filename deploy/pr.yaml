@@ -1,0 +1,37 @@
+steps:
+  # Step 1: Build Docker image (just like the CI process)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '-t',
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA',
+        '.'
+      ]
+
+  # Step 2: Run unit tests or integration tests if needed (optional)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'run',
+        '--rm',
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA',
+        'python',  # Example test command, adjust as per your app's testing mechanism
+        '-m',
+        'unittest'
+      ]
+
+  # Step 3: Print success message when the PR build and tests are successful
+  - name: 'alpine'
+    args:
+      [
+        'sh',
+        '-c',
+        'echo "PR Build for $SHORT_SHA succeeded!"'
+      ]
+
+images:
+  - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY  # Log to Cloud Logging only (no Cloud Storage)
