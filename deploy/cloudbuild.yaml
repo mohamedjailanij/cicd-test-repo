@@ -38,7 +38,8 @@ steps:
         'set',
         'image',
         'deployment/my-app-deployment',  # Replace with your deployment name
-        'my-app-container=asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
+        'my-app-container=asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA',
+        '--namespace=cicd-test-service'  # Ensure the correct namespace
       ]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=asia-southeast1'  # Zone of your cluster
