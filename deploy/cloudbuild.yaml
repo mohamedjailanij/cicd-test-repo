@@ -1,53 +1,52 @@
-substitutions:
-  _VERSION: ''  # Custom substitution variable to be set during the build
-
 steps:
-  # Step 1: Fetch the latest Git tag (this will be your version number)
-  - name: 'gcr.io/cloud-builders/git'
-    id: 'get_git_tag'
-    entrypoint: 'sh'
-    args:
-      - '-c'
-      - |
-        VERSION=$(git describe --tags --abbrev=0)  # Get the latest git tag (version)
-        echo "Current Git tag version: $VERSION"
-        echo $VERSION > /workspace/_VERSION  # Set the custom substitution variable _VERSION
-
-  # Step 2: Increment the version (patch version)
-  - name: 'alpine'
-    id: 'increment_version'
-    entrypoint: 'sh'
-    args:
-      - '-c'
-      - |
-        VERSION=$(cat /workspace/_VERSION)
-        VERSION_PARTS=(${VERSION//./ })
-        PATCH_VERSION=${VERSION_PARTS[2]}
-        PATCH_VERSION=$((PATCH_VERSION + 1))  # Increment the patch version
-        NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH_VERSION"
-        echo "New version: $NEW_VERSION"
-        echo $NEW_VERSION > /workspace/_VERSION  # Update the version for the next use
-
-  # Step 3: Build Docker image with the new version (tagged as the version)
+  # Step 1: Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'build',
         '-t',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}',  # Use custom version tag for Docker image
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA',
         '.'
       ]
 
-  # Step 4: Push Docker image to Google Artifact Registry
+  # Step 2: Push Docker image to Google Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'push',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'  # Push with custom version tag
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
       ]
 
+  # Step 3: Authenticate to GKE cluster
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      [
+        'container',
+        'clusters',
+        'get-credentials',
+        'cicd-automation-cluster',  # Name of your GKE cluster
+        '--zone',
+        'asia-southeast1',  # The zone where your cluster is located
+        '--project',
+        'western-emitter-461905-e7'  # Your Google Cloud project ID
+      ]
+
+  # Step 4: Update Kubernetes deployment with the new image
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      [
+        'set',
+        'image',
+        'deployment/my-app-deployment',  # Replace with your deployment name
+        'my-app-container=asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA',
+        '--namespace=cicd-test-service'  # Ensure the correct namespace
+      ]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=asia-southeast1'  # Zone of your cluster
+      - 'CLOUDSDK_CONTAINER_CLUSTER=cicd-automation-cluster'  # Name of your cluster
+
 images:
-  - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'
+  - 'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:$SHORT_SHA'
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Logs will be stored in Cloud Logging
