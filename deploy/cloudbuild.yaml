@@ -1,17 +1,17 @@
 substitutions:
-  _VERSION: 'v0.0.0'  # Starting version
+  _VERSION: ''  # Custom substitution variable to be set during the build
 
 steps:
-  # Step 1: Fetch the latest Git tag (version)
+  # Step 1: Fetch the latest Git tag (this will be your version number)
   - name: 'gcr.io/cloud-builders/git'
     id: 'get_git_tag'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        VERSION=$(git describe --tags --abbrev=0)
+        VERSION=$(git describe --tags --abbrev=0)  # Get the latest git tag (version)
         echo "Current Git tag version: $VERSION"
-        echo $VERSION > /workspace/_VERSION  # Store the version for later use
+        echo $VERSION > /workspace/_VERSION  # Set the custom substitution variable _VERSION
 
   # Step 2: Increment the version (patch version)
   - name: 'alpine'
@@ -34,16 +34,16 @@ steps:
       [
         'build',
         '-t',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}',  # Use the new version for Docker image
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}',  # Use custom version tag for Docker image
         '.'
       ]
 
-  # Step 4: Push the Docker image to Artifact Registry with the new version tag
+  # Step 4: Push Docker image to Google Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'push',
-        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'  # Push with the new version tag
+        'asia-southeast1-docker.pkg.dev/western-emitter-461905-e7/cicd-testing/my-app:${_VERSION}'  # Push with custom version tag
       ]
 
 images:
